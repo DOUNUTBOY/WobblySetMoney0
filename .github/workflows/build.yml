@@ -1,0 +1,22 @@
+name: Build Mod
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - run: |
+          mkdir -p s
+          python3 -c 'open("s/s.cs","w").write("[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(UnityEngine.MonoBehaviour))]")'
+          python3 -c 'open("s/UnityEngine.csproj","w").write("<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><TargetFramework>net472</TargetFramework><AssemblyVersion>0.0.0.0</AssemblyVersion></PropertyGroup><ItemGroup><Reference Include=\"UnityEngine.CoreModule\"><HintPath>../UnityEngine.CoreModule.dll</HintPath></Reference></ItemGroup></Project>")'
+          python3 -c 'open("DebtMod.csproj","w").write("<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><TargetFramework>net472</TargetFramework><LangVersion>latest</LangVersion></PropertyGroup><ItemGroup><Compile Remove=\"s\\**\" /><Reference Include=\"0Harmony\"><HintPath>0Harmony.dll</HintPath></Reference><Reference Include=\"BepInEx\"><HintPath>BepInEx.dll</HintPath></Reference><Reference Include=\"lstwoMODS_Core\"><HintPath>lstwoMODS_Core.dll</HintPath></Reference><Reference Include=\"lstwoMODS_WobblyLife\"><HintPath>lstwoMODS_WobblyLife.dll</HintPath></Reference><Reference Include=\"UnityEngine\"><HintPath>UnityEngine.dll</HintPath></Reference><Reference Include=\"UnityEngine.CoreModule\"><HintPath>UnityEngine.CoreModule.dll</HintPath></Reference></ItemGroup></Project>")'
+          dotnet build s/UnityEngine.csproj -c Release -o .
+          dotnet build DebtMod.csproj -c Release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DebtMod
+          path: bin/Release/net472/DebtMod.dll
+          
